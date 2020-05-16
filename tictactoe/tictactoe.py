@@ -3,6 +3,7 @@ Tic Tac Toe Player
 """
 
 import math
+import random
 
 X = "X"
 O = "O"
@@ -99,7 +100,6 @@ def winner(board):
             return O
         result = ""
 
-
     # check diagonal \
     result = ""
     for i in range(len(board)):
@@ -109,7 +109,6 @@ def winner(board):
         return X
     elif O*NUM_MATCH in result: 
         return O
-    result = ""
 
     # check diagonal /
     result = ""
@@ -120,7 +119,6 @@ def winner(board):
         return X
     elif O*NUM_MATCH in result: 
         return O
-    result = ""
 
     return None
 
@@ -144,10 +142,10 @@ def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    winner = winner(board)
-    if winner == X: 
+    result = winner(board)
+    if result == X:
         return 1
-    elif winner == O: 
+    elif result == O:
         return -1 
     else: 
         return 0
@@ -157,4 +155,5 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    possible_actions = actions(board)
+    return possible_actions[random.randint(0, len(possible_actions)-1)]
