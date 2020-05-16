@@ -45,13 +45,13 @@ def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    result = []
+    tmp_res = []
     for i in range(len(board)): 
         for j in range(len(board[0])): 
             if board[i][j] == EMPTY: 
-                result.append((i,j))
+                tmp_res.append((i, j))
     
-    return result
+    return tmp_res
 
 
 def result(board, action):
@@ -77,47 +77,47 @@ def winner(board):
     Returns the winner of the game, if there is one.
     """
     # check horizontal wins
-    result = ""
+    tmp_res = ""
     for row in board: 
         for item in row: 
-            result += item
+            tmp_res += item
 
-        if X*NUM_MATCH in result: 
+        if X*NUM_MATCH in tmp_res:
             return X
-        elif O*NUM_MATCH in result: 
+        elif O*NUM_MATCH in tmp_res:
             return O
-        result = ""
+        tmp_res = ""
 
     # check vertical
-    result = ""
+    tmp_res = ""
     for col in range(len(board[0])): 
         for row in range(len(board)): 
-            result += board[row][col]
+            tmp_res += board[row][col]
 
-        if X*NUM_MATCH in result: 
+        if X*NUM_MATCH in tmp_res:
             return X
-        elif O*NUM_MATCH in result: 
+        elif O*NUM_MATCH in tmp_res:
             return O
-        result = ""
+        tmp_res = ""
 
     # check diagonal \
-    result = ""
+    tmp_res = ""
     for i in range(len(board)):
-        result += board[i][i]
+        tmp_res += board[i][i]
         
-    if X*NUM_MATCH in result: 
+    if X*NUM_MATCH in tmp_res:
         return X
-    elif O*NUM_MATCH in result: 
+    elif O*NUM_MATCH in tmp_res:
         return O
 
     # check diagonal /
-    result = ""
+    tmp_res = ""
     for i in range(len(board)-1, -1, -1):
-        result += board[NUM_MATCH-i-1][i]
+        tmp_res += board[NUM_MATCH-i-1][i]
         
-    if X*NUM_MATCH in result: 
+    if X*NUM_MATCH in tmp_res:
         return X
-    elif O*NUM_MATCH in result: 
+    elif O*NUM_MATCH in tmp_res:
         return O
 
     return None
@@ -142,10 +142,10 @@ def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    result = winner(board)
-    if result == X:
+    tmp_res = winner(board)
+    if tmp_res == X:
         return 1
-    elif result == O:
+    elif tmp_res == O:
         return -1 
     else: 
         return 0
@@ -155,5 +155,37 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
+    if player(board) == X:
+        return maximizer(board)[1]
+    elif player(board) == O:
+        return minimizer(board)[1]
+
+
+def maximizer(board):
     possible_actions = actions(board)
-    return possible_actions[random.randint(0, len(possible_actions)-1)]
+    
+    if len(possible_actions) == 1:
+        return utility(result(board, possible_actions[0])), possible_actions[0]
+    else: 
+        best_case = (float("-inf"), (None, None))
+        for action in possible_actions:
+            tmp_res = minimizer(result(board, action))
+            if tmp_res[0] > best_case[0]:
+                best_case = tmp_res[0], action
+
+        return best_case
+
+
+def minimizer(board):
+    possible_actions = actions(board)
+
+    if len(possible_actions) == 1:
+        return utility(result(board, possible_actions[0])), possible_actions[0]
+    else:
+        best_case = (float("inf"), (None, None))
+        for action in possible_actions:
+            tmp_res = maximizer(result(board, action))
+            if tmp_res[0] < best_case[0]:
+                best_case = tmp_res[0], action
+
+        return best_case
