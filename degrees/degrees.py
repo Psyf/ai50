@@ -91,9 +91,33 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
+    explored_state = {}
+    queue = QueueFrontier()
+    queue.add(Node(source, None, None))
 
-    # TODO
-    raise NotImplementedError
+    while not queue.empty(): 
+        cur_node = queue.remove()
+        explored_state[cur_node.state] = (cur_node.action, cur_node.parent)
+        for neighbor in neighbors_for_person(cur_node.state): 
+            if neighbor[1] not in explored_state and not queue.contains_state(neighbor[1]): 
+                if neighbor[1] == target:
+                    explored_state[neighbor[1]] = (neighbor[0], cur_node.state)
+                    result = back_track_list(explored_state, target, source)
+                    return result
+                else: 
+                    queue.add(Node(neighbor[1], cur_node.state, neighbor[0]))  # PERSON cur_node.state knows PERSON neighbor[1] through MOVIE neighbor[0]
+
+    return None
+
+def back_track_list(traversal_history, target, source):
+    path = []
+
+    cur_person = target
+    while cur_person != source: 
+        path.append((traversal_history[cur_person][0], cur_person))
+        cur_person = traversal_history[cur_person][1]
+
+    return path[::-1]
 
 
 def person_id_for_name(name):
