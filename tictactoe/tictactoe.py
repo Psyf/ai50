@@ -44,14 +44,31 @@ def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    raise NotImplementedError
+    result = []
+    for i in range(len(board)): 
+        for j in range(len(board[0])): 
+            if board[i][j] == EMPTY: 
+                result.append((i,j))
+    
+    return result
 
 
 def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    raise NotImplementedError
+    copy_of_board = []
+    for i in range(len(board)): 
+        copy_of_board.append([])
+        for j in range(len(board[0])): 
+            copy_of_board[i].append(board[i][j])
+
+    if action not in actions(board): 
+        raise Exception("Illegal Move!")
+    else: 
+        copy_of_board[action[0]][action[1]] = player(board)
+    
+    return copy_of_board
 
 
 def winner(board):
@@ -141,7 +158,3 @@ def minimax(board):
     Returns the optimal action for the current player on the board.
     """
     raise NotImplementedError
-
-print(terminal([[X, EMPTY, X],
-            [O, EMPTY, X],
-            [X, EMPTY, O]]))
