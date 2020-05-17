@@ -94,13 +94,6 @@ class Sentence:
     def __init__(self, cells, count):
         self.cells = set(cells)
         self.count = count
-        self.safe_cells = set()
-        self.mine_cells = set()
-
-        if self.count == len(self.cells):   # all are mines
-            self.mine_cells = self.cells.copy()
-        elif self.count == 0:               # all are safe
-            self.safe_cells = self.cells.copy()
 
     def __eq__(self, other):
         return self.cells == other.cells and self.count == other.count
@@ -112,13 +105,19 @@ class Sentence:
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        return self.mine_cells
+        if self.count == len(self.cells):   # all are mines
+            return self.cells
+        else:
+            return set()
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        return self.safe_cells
+        if self.count == 0:               # all are safe
+            return self.cells
+        else:
+            return set()
 
     def mark_mine(self, cell):
         """
@@ -126,25 +125,15 @@ class Sentence:
         a cell is known to be a mine.
         """
         if cell in self.cells:
-            self.mine_cells.add(cell)
-
-        # If I've discovered all the mines, rest are safe
-        if len(self.mine_cells) == self.count:
-            discovered_safes = self.cells.difference(self.mine_cells)
-            self.safe_cells = self.safe_cells.union(discovered_safes)
+            self.cells.discard(cell)
+            self.count -= 1
 
     def mark_safe(self, cell):
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        if cell in self.cells:
-            self.safe_cells.add(cell)
-
-        # I've discovered all the safes, rest are mines
-        if len(self.cells.difference(self.safe_cells)) == self.count:
-            discovered_mines = self.cells.difference(self.safe_cells)
-            self.mine_cells = self.mine_cells.union(discovered_mines)
+        self.cells.discard(cell)
 
 
 class MinesweeperAI:
@@ -215,6 +204,7 @@ class MinesweeperAI:
 
         self.knowledge.append(new_sentence)
 
+        # propagate changes until no new changes found
         while True:
             change_counter = 0
             for sentence in self.knowledge:
@@ -230,8 +220,31 @@ class MinesweeperAI:
                 for mine in new_mines:
                     self.mark_mine(mine)
 
+            new_sentences = []
+            delete_sentences = []
+            # making new sentences
+            for sentence_a in self.knowledge:
+                if sentence_a.cells == set():
+                    continue
+                for sentence_b in self.knowledge:
+                    if sentence_b.cells == set():
+                        continue
+                    if sentence_a.cells < sentence_b.cells:  # sentence_a is a proper subset of sentence_b
+                        change_counter += 1
+                        new_sentences.append(Sentence(sentence_b.cells.difference(sentence_a.cells), sentence_b.count - sentence_a.count))
+                        delete_sentences.append(sentence_b.cells)
+
+            self.knowledge = [item for item in self.knowledge if item.cells not in delete_sentences]
+            for sentence in new_sentences:
+                self.knowledge.append(sentence)
+
             if change_counter == 0:
                 break
+
+        # getting rid of empty sentences
+        self.knowledge = [item for item in self.knowledge if item.cells != set()]
+
+        # TODO: remove duplicates
 
         print("Known Safeties Left: ", len(self.safes.difference(self.moves_made)), self.safes.difference(self.moves_made))
         print("Known Mines at: ", len(self.mines), self.mines)
