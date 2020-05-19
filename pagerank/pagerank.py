@@ -102,6 +102,9 @@ def sample_pagerank(corpus, damping_factor, n):
         cur_page = random.choices(list(distribution.keys()), list(distribution.values()))[0]
         page_rank[cur_page] = page_rank[cur_page] + 1
 
+    for item in page_rank: 
+        page_rank[item] = page_rank[item]/n
+
     return page_rank
 
 def iterate_pagerank(corpus, damping_factor):
@@ -113,8 +116,38 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    all_pages = list(corpus.keys())
+    lead_to_dict = {}
 
+    for page in all_pages: 
+        lead_to_dict[page] = set()
+
+    for item in corpus: 
+        for page in corpus[item]:
+            lead_to_dict[page].add(item)
+
+    page_rank = {}
+
+    for item in all_pages: 
+        page_rank[item] = 1/len(all_pages) 
+
+    converged = False 
+
+    while converged is False: 
+        converged = True
+        for cur_page in all_pages: 
+            old_rank = page_rank[cur_page]
+            new_rank = (1 - damping_factor) / len(all_pages)
+            for parent in lead_to_dict[cur_page]:
+                delta = damping_factor*page_rank[parent]/len(corpus[parent])
+                new_rank += delta
+
+            page_rank[cur_page] = new_rank
+            if (new_rank-old_rank) > 0.001: 
+                converged = False 
+
+    return page_rank
+    
 
 if __name__ == "__main__":
     main()
