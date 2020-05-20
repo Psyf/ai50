@@ -13,13 +13,19 @@ def main():
     corpus = crawl(sys.argv[1])
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
+    count = 0
     for page in sorted(ranks):
+        count += ranks[page]
         print(f"  {page}: {ranks[page]:.4f}")
+    print(count)
+
+    count = 0
     ranks = iterate_pagerank(corpus, DAMPING)
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
+        count += ranks[page]
         print(f"  {page}: {ranks[page]:.4f}")
-
+    print(count)
 
 def crawl(directory):
     """
@@ -133,18 +139,32 @@ def iterate_pagerank(corpus, damping_factor):
 
     converged = False 
 
+    old_page_rank = page_rank.copy()
+
     while converged is False: 
         converged = True
         for cur_page in all_pages: 
-            old_rank = page_rank[cur_page]
-            new_rank = (1 - damping_factor) / len(all_pages)
+
+            old_rank = old_page_rank[cur_page]
+            new_rank = (1 - damping_factor)/len(all_pages)
+
             for parent in lead_to_dict[cur_page]:
-                delta = damping_factor*page_rank[parent]/len(corpus[parent])
+                delta = damping_factor*old_page_rank[parent]/len(corpus[parent])
                 new_rank += delta
 
             page_rank[cur_page] = new_rank
-            if (new_rank-old_rank) > 0.001: 
+            if abs(new_rank-old_rank) > 0.001: 
                 converged = False 
+
+        old_page_rank = page_rank.copy()
+
+    # scaling to 1.0
+    sum = 0 
+    for item in page_rank.keys(): 
+        sum += page_rank[item]
+    
+    for item in page_rank.keys(): 
+        page_rank[item] = page_rank[item]/sum
 
     return page_rank
     
