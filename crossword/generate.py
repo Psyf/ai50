@@ -207,8 +207,20 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        # TODO 
-        return self.domains[var]
+        ordered_val = []
+        for item in self.domains[var]: 
+            count = 0 
+            for neighbor in self.crossword.neighbors(var): 
+                if item in self.domains[neighbor]: 
+                    count += 1
+
+            ordered_val.append((count, item))
+        
+            # perhaps a better option would be to use a fill AC-3 here to see how many are eliminated. 
+            # But that maybe defeats the purpose of choosing a good heuristic to make the process faster...
+
+        ordered_val.sort(key=lambda item: item[0])
+        return [x for _, x in ordered_val]
 
     def select_unassigned_variable(self, assignment):
         """
@@ -265,9 +277,6 @@ class CrosswordCreator():
 
             # try the value
             for trial in trial_order:
-                global call_count 
-                call_count += 1
-
                 # again, make a copy so we don't alter original state
                 # in case we need to come back 
                 trial_assignment = assignment.copy()
@@ -331,7 +340,6 @@ def main():
         if output:
             creator.save(assignment, output)
 
-    print(call_count)
 
 if __name__ == "__main__":
     main()
