@@ -228,18 +228,18 @@ class CrosswordCreator():
                 elif min_num == len(self.domains[item]):
                     candidates.append(item)
 
-        return candidates[0]
 
-        # if len(candidates) == 1: 
-        #     return candidates[0]
-        # else: 
-        #     sorted_candidates = []
+        if len(candidates) == 1: 
+            return candidates[0]
+        else: 
+            max_degree = float('-inf')
+            result = None
+            for item in candidates:
+                if len(self.crossword.neighbors(item)) > max_degree: 
+                    max_degree = len(self.crossword.neighbors(item))
+                    result = item 
 
-        #     for item in candidates:
-        #         sorted_candidates.append((len(self.crossword.neighbors(item)), item))
-        #     sorted_candidates = sorted(sorted_candidates)
-
-        #     return sorted_candidates[0]
+            return result
 
     def backtrack(self, assignment):
         """
@@ -250,29 +250,62 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
+        # base case
         if self.assignment_complete(assignment): 
             return assignment
         else: 
+            # save copy in case of backtracking
             domains_copy = self.domains.copy()
+
+            # select one variable 
             var = self.select_unassigned_variable(assignment)
+
+            # order in which to try values from its domain
             trial_order = self.order_domain_values(var, assignment)
+
+            # try the value
             for trial in trial_order:
                 global call_count 
                 call_count += 1
+
+                # again, make a copy so we don't alter original state
+                # in case we need to come back 
                 trial_assignment = assignment.copy()
                 trial_assignment[var] = trial 
+
+                # if the new assignment makes sense primarily
                 if self.consistent(trial_assignment): 
+
+                    # see if you can eliminate more of the domain by arc consistency 
+                    # asking AC3 to run on entire graph because as problem becomes smaller, 
+                    # less steps needed anyway. 
+                    # Possible improvement is to give it only relevant arcs. 
                     if self.ac3() == False: 
+
+                        # if AC3 test fails, load saved state
                         self.domains = domains_copy.copy()
+
+                        # and try next value 
                         continue
                     else: 
+
+                        # if consistent with entire graph UNTIL NOW, 
+                        # try assigning the next unassigned variable 
+                        # recursive call. Dynamic Programming. 
                         resulting_assignment = self.backtrack(trial_assignment)
+
+                        # if we've actually gone through to max_depth and found a valid assignment!
                         if resulting_assignment is not None: 
                             return resulting_assignment
                         else: 
                             self.domains = domains_copy.copy()
 
+        # if none of the values of the var we selected works out
+        # this set of assignments given to this backtrack() was wrong.
+        # bubble back up. 
+        return None
                 
+        
 
 def main():
 
