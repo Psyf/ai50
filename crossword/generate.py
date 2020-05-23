@@ -1,3 +1,6 @@
+# Solving CrossWord 
+# using BackTracking Search (optimal) + AC-3 (fast pruning) + Heuristics (make is faster)
+
 import sys
 
 from crossword import *
@@ -153,12 +156,16 @@ class CrosswordCreator():
             x, y = arcs.pop()
             revised = self.revise(x, y)
 
+            # if new domain is null set
             if len(self.domains[x]) == 0:
                 return False
+
+            # if something was revised, have to add more arcs back into queue
             elif revised:
                 for k in self.crossword.neighbors(x):
                     arcs.add((x, k))
 
+        # all arcs consistent, no domains went to NULL set
         return True
 
     def assignment_complete(self, assignment):
@@ -178,16 +185,19 @@ class CrosswordCreator():
         """
         used_words = set()
         for var in assignment: 
+            # repeated words are not consistent
             if assignment[var] in used_words: 
                 return False 
             else: 
                 used_words.add(assignment[var])
             
+            # words that are not of correct length 
             if len(assignment[var]) != var.length: 
                 return False 
             else: 
                 for var_2 in self.crossword.neighbors(var): 
                     if var_2 in assignment: 
+                        # nodes that do not satisfy overlap constraint
                         if not self.pair_consistent((var, assignment[var]), (var_2, assignment[var_2])): 
                             return False 
 
