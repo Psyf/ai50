@@ -1,5 +1,6 @@
 import csv
 import sys
+from datetime import datetime
 
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
@@ -59,16 +60,45 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    evidence = []
+    labels = []
+    with open(filename, 'r') as f_handle: 
+        reader = csv.reader(f_handle)
+        first_row = True
 
+        for row in reader:
+            if first_row: 
+                # first row is column headers
+                first_row = False 
+                continue 
+
+            wrangled_list = []
+            for idx in range(len(row)): 
+                if idx in [0, 2, 4, 11, 12, 13, 14]: 
+                    wrangled_list.append(int(row[idx]))
+                if idx == 10: 
+                    wrangled_list.append(datetime.strptime(row[idx][:3], '%b').month - 1)  
+                elif idx == 15: 
+                    wrangled_list.append(1 if row[idx] == 'Returning_Visitor' else 0)
+                elif idx > 15: 
+                    wrangled_list.append(0 if row[idx] == 'FALSE' else 1)
+                else: 
+                    wrangled_list.append(float(row[idx]))
+
+            evidence.append(wrangled_list[:-1])
+            labels.append(wrangled_list[-1]) 
+
+    return evidence, labels
 
 def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    raise NotImplementedError
+    model = KNeighborsClassifier(1)
+    model.fit(evidence, labels)
 
+    return model
 
 def evaluate(labels, predictions):
     """
@@ -85,7 +115,21 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    sensitivity_nume = 0
+    sensitivity_deno = 0
+    specificity_nume = 0
+    specificity_deno = 0
+    for truth, pred in zip(labels, predictions): 
+        if truth == 1:
+            sensitivity_deno += 1 
+            if truth == pred: 
+                sensitivity_nume += 1
+        elif truth == 0: 
+            specificity_deno += 1
+            if truth == pred: 
+                specificity_nume += 1
+    
+    return sensitivity_nume/sensitivity_deno, specificity_nume/specificity_deno
 
 
 if __name__ == "__main__":
