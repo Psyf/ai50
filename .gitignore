@@ -1,2 +1,4 @@
-.idea/
-__pycahche__/
+# created by virtualenv automatically
+bin/
+lib/
+pyvenv.cfg
