@@ -1,2 +1,6 @@
 .idea/
 __pycahche__/
+.vscode/
+bin/
+lib/
+pyvenv.cfg
