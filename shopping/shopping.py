@@ -72,6 +72,7 @@ def load_data(filename):
                 first_row = False 
                 continue 
 
+            # blank line to trigger Ai50 bot submission status
             wrangled_list = []
             for idx in range(len(row)): 
                 if idx in [0, 2, 4, 11, 12, 13, 14]: 
