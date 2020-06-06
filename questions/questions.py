@@ -1,5 +1,4 @@
 import nltk
-nltk.download('stopwords')
 
 import sys
 import os
@@ -70,19 +69,19 @@ def tokenize(document):
     Process document by coverting all words to lowercase, and removing any
     punctuation or English stopwords.
     """
-    first_pass = [word for word in nltk.tokenize.word_tokenize(document.lower()) if word not in nltk.corpus.stopwords.words("english")] 
-    second_pass = []
+    
+    
+    # get rid of all punctuation characters in the corpus
+    for punc in string.punctuation: 
+        document = document.replace(punc, ' ')
 
-    for word in first_pass:
-        valid = True 
-        for char in word: 
-            if char in string.punctuation: 
-                valid = False
-                break
-        if valid: 
-            second_pass.append(word)
+    # lower + tokenize
+    second_pass = [word for word in nltk.tokenize.word_tokenize(document.lower())] 
 
-    return second_pass
+    # get rid of stop words
+    third_pass = [word for word in second_pass if word not in nltk.corpus.stopwords.words("english")]
+
+    return third_pass
 
 def compute_idfs(documents):
     """
@@ -97,7 +96,9 @@ def compute_idfs(documents):
 
     for doc in documents: 
         for word in documents[doc]: 
+            # skip words we've already calculated idf for 
             if word not in result: 
+                # count how many docs this word appears in
                 counter = 1
                 for other_doc in documents: 
                     if other_doc == doc:
@@ -121,12 +122,12 @@ def top_files(query, files, idfs, n):
         score = 0
         for word in query: 
             count = files[f_name].count(word)
-            tf_idf = idfs[word] * count 
+            tf_idf = idfs[word] * count
             score += tf_idf
 
-        tuple_list.append((-score, f_name))
+        tuple_list.append((score, f_name))
 
-    tuple_list = sorted(tuple_list)
+    tuple_list.sort(reverse=True)
     return [item[1] for item in tuple_list[:n]]
 
 def top_sentences(query, sentences, idfs, n):
