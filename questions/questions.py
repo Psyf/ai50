@@ -73,7 +73,7 @@ def tokenize(document):
     
     # get rid of all punctuation characters in the corpus
     for punc in string.punctuation: 
-        document = document.replace(punc, ' ')
+        document = document.replace(punc, '')
 
     # lower + tokenize
     second_pass = [word for word in nltk.tokenize.word_tokenize(document.lower())] 
